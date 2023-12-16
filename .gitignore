@@ -1,0 +1,4 @@
+requirements.txt
+requirements.in
+*.env
+db.sqlite3
