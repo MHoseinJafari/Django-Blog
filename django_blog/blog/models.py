@@ -10,7 +10,7 @@ class Blog(models.Model):
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey("Category", on_delete=models.SET_NULL, null=True, related_name="post_categories")
-    rate = models.FloatField()
+    rate = models.FloatField(default=0)
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -24,15 +24,16 @@ class Blog(models.Model):
             return Vote.objects.create(user=user, post = self)
     
     def vote_submit(self, user, amount):
-            if amount in range(0,6):
+            if amount in range(5):
                 vote_obj = self.initiate(user)
                 vote_obj.vote = amount
                 vote_obj.save()
                 post_rate = self.avrage_vote()
                 vote_obj.post.rate = post_rate
                 vote_obj.post.save()
+                return vote_obj.post.rate
             else:
-                raise ValueError("Invalid amount")
+                raise ValueError("invalid amount")
             
     def avrage_vote(self):
         post_obj = Blog.objects.filter(id=self.id).annotate(avg_vote=Avg("vote__vote"))
@@ -50,7 +51,7 @@ class Category(models.Model):
 
 class Vote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    post = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='vote')
     vote = models.IntegerField(null=True, blank=True)
 
     class Meta:

@@ -51,12 +51,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-    
-    # def create_profile(self):
-    #     with transaction.atomic():
-    #         if self.create_user():
-    #             Profile.objects.create(user = self).save()
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
