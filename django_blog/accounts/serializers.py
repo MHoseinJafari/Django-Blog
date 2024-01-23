@@ -13,16 +13,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ["email", "password", "password1"]
 
     def validate(self, attrs):
-        if attrs.get("password") != attrs.get("password1"):
-            raise serializers.ValidationError(
-                {"detail": "passwords doesnt match"}
-            )
-        try:
-            validate_password(attrs.get("password"))
-        except exceptions.ValidationError as e:
-            raise serializers.ValidationError(
-                {"passwords errors": list(e.messages)}
-            )
+
+        password = attrs.get('password')
+        password1 = attrs.get('password1')
+        User.password_validater(password, password1)
+
+
+        # if attrs.get("password") != attrs.get("password1"):
+        #     raise serializers.ValidationError(
+        #         {"detail": "passwords doesnt match"}
+        #     )
+        # try:
+        #     validate_password(attrs.get("password"))
+        # except exceptions.ValidationError as e:
+        #     raise serializers.ValidationError(
+        #         {"passwords errors": list(e.messages)}
+        #     )
         return super().validate(attrs)
 
     def create(self, validated_data):

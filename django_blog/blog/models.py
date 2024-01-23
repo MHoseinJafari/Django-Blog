@@ -24,7 +24,7 @@ class Blog(models.Model):
             return Vote.objects.create(user=user, post = self)
     
     def vote_submit(self, user, amount):
-            if amount in range(5):
+            if amount in range(6    ):
                 vote_obj = self.initiate(user)
                 vote_obj.vote = amount
                 vote_obj.save()
@@ -54,8 +54,6 @@ class Vote(models.Model):
     post = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='vote')
     vote = models.IntegerField(null=True, blank=True)
 
-    class Meta:
-        unique_together = [('post', 'user')]
     
 
         

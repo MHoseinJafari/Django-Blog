@@ -1,6 +1,9 @@
-from django.db import models, transaction
+from rest_framework import serializers, status
+from rest_framework.response import Response
 
 from django.db import models
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions
 from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
@@ -51,7 +54,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    @staticmethod
+    def password_validater(password, password1):
+        if password != password1:
+            raise serializers.ValidationError(
+                {"detail": "passwords doesnt match"}
+            )
+        try:
+            validate_password(password)
+        except exceptions.ValidationError as e:
+            raise serializers.ValidationError(
+                {"passwords errors": list(e.messages)}
+            )
 
+    @staticmethod
+    def check_pass(password, object):
+        if not object.check_password(password):
+            return False
+    
+    @staticmethod
+    def set_pass(password, object):
+        object.set_password(password)
+        object.save()
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=35)

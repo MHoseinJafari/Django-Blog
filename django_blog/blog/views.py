@@ -1,30 +1,37 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from .models import Blog,Vote
 from . import serializers
-from accounts.models import User
-from django.shortcuts import get_object_or_404
+from accounts.permissions import IsVerifiedOrReadOnly, IsOwnerOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.views import status
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-
-
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class BlogModelViewSet(viewsets.ModelViewSet):
 
     queryset = Blog.objects.all()
-    serializer_class = serializers.BlogSerializer
-    
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedOrReadOnly, IsOwnerOrReadOnly]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = {"category": ["exact", "in"]}
+    ordering_fields = ["created_date"]
 
-    def update(self, request, pk=None,  *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        vote_obj = self.request.data.get("vote")
-        if vote_obj:
-            vote_obj = int(vote_obj)
-            blog = Blog.objects.get(pk=pk)
-            blog.vote_submit(user=self.request.user, amount=vote_obj)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return serializers.BlogCreateSerializer
+        return serializers.BlogSerializer
+
+
+class VoteCreateApiView(generics.CreateAPIView):
+    serializer_class = serializers.VoteSerializer
+    
+    
+    def perform_create (self, serializer) :
+        vote_obj = serializer.validated_data["vote"]
+        vote_obj = int(vote_obj)
+        blog = Blog.objects.get(pk=self.kwargs.get('pk'))
+        blog.vote_submit(user=self.request.user, amount=vote_obj)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(post=self.kwargs.get('pk'), user = self.request.user)
