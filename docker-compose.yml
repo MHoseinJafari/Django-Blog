@@ -25,7 +25,7 @@ services:
       - '143:143'
     volumes:
       # This is where smtp4dev stores the database..
-        - ${smtp}
+        - smtp4dev-data:/smtp4dev
     environment:
       # Uncomment to customise these settings
 
