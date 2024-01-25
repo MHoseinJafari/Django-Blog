@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('blog', '0009_alter_vote_post'),
+        ("blog", "0009_alter_vote_post"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='blog',
-            name='rate',
+            model_name="blog",
+            name="rate",
             field=models.FloatField(default=0),
         ),
     ]

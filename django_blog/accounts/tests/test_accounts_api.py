@@ -22,11 +22,13 @@ def user_data():
 
 @pytest.fixture
 def normal_user():
-    profile = Profile.objects.create(user = User.objects.create_user(
-        email="mo@gmail.com",
-        password="m@1234567",
-        is_verified=True,
-    ))
+    profile = Profile.objects.create(
+        user=User.objects.create_user(
+            email="mo@gmail.com",
+            password="m@1234567",
+            is_verified=True,
+        )
+    )
     return profile.user
 
 
@@ -458,9 +460,7 @@ class TestAccountsApi:
         token = self.test_create_jwt_token_response_200_status(
             api_client, normal_user
         )
-        url = reverse(
-            "accounts:reset-password-confirmation", args=[token[1]]
-        )
+        url = reverse("accounts:reset-password-confirmation", args=[token[1]])
         data = {
             "new_password": "m@12345678",
             "new_password1": "m@12345678",
@@ -491,9 +491,7 @@ class TestAccountsApi:
         token = self.test_create_jwt_token_response_200_status(
             api_client, normal_user
         )
-        url = reverse(
-            "accounts:reset-password-confirmation", args=[token[1]]
-        )
+        url = reverse("accounts:reset-password-confirmation", args=[token[1]])
         data = {
             "new_password": "m@123456789",
             "new_password1": "m@12345678",

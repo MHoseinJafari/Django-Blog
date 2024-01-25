@@ -13,11 +13,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ["email", "password", "password1"]
 
     def validate(self, attrs):
-
-        password = attrs.get('password')
-        password1 = attrs.get('password1')
+        password = attrs.get("password")
+        password1 = attrs.get("password1")
         User.password_validater(password, password1)
-
 
         # if attrs.get("password") != attrs.get("password1"):
         #     raise serializers.ValidationError(

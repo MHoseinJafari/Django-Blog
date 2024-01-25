@@ -5,15 +5,19 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('blog', '0007_alter_vote_post'),
+        ("blog", "0007_alter_vote_post"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='vote',
-            name='post',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', related_query_name='votes', to='blog.blog'),
+            model_name="vote",
+            name="post",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="votes",
+                related_query_name="votes",
+                to="blog.blog",
+            ),
         ),
     ]

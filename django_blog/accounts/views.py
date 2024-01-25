@@ -21,27 +21,26 @@ from .serializers import (
     ResetPasswordSerializer,
 )
 from django.contrib.auth import get_user_model
-from .models import Profile,User
+from .models import Profile, User
 from accounts.permissions import IsVerified
 from reusuble.func import send_email
-
-
-
 
 
 # TODO:register user and send email for activation
 class RegistrationApiView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        email = self.request.data.get('email', None)
+        email = self.request.data.get("email", None)
         send_email(email, email_format="activation")
         user = User.objects.get(email=email)
         Profile.objects.create(user=user)
-        return Response({'email': email}, status=status.HTTP_201_CREATED)
+        return Response({"email": email}, status=status.HTTP_201_CREATED)
+
 
 # TODO:generate token
 class CustomobtainAuthToken(ObtainAuthToken):
@@ -88,7 +87,7 @@ class ChangePasswordApiView(generics.GenericAPIView):
             old_pass = serializer.data.get("old_password")
             new_pass = serializer.data.get("new_password")
             # check old password
-            check=User.check_pass(old_pass, self.object)
+            check = User.check_pass(old_pass, self.object)
             if check is False:
                 return Response(
                     {"old_password": ["wrong password"]},

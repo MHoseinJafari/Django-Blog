@@ -1,5 +1,4 @@
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 
 from django.db import models
 from django.contrib.auth.password_validation import validate_password
@@ -10,8 +9,6 @@ from django.contrib.auth.models import (
     BaseUserManager,
 )
 from django.utils.translation import gettext_lazy as _
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 # crate custom user and superuser
@@ -54,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-    
+
     @staticmethod
     def password_validater(password, password1):
         if password != password1:
@@ -72,11 +69,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def check_pass(password, object):
         if not object.check_password(password):
             return False
-    
+
     @staticmethod
     def set_pass(password, object):
         object.set_password(password)
         object.save()
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=35)

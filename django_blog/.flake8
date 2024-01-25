@@ -1,0 +1,19 @@
+[flake8]
+
+exclude =
+    .git,
+    .gitignore,
+    *.pot,
+    *.py[co],
+    __pycache__,
+    venv,
+    .env
+    settings.py,
+    __init__,
+    migrations,
+    accounts/views.py,
+    TodoApp/api/utils.py,
+
+ignore = 
+    E712,
+    W503

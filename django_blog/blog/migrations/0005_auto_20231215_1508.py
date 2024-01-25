@@ -5,20 +5,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('blog', '0004_auto_20231214_0916'),
+        ("blog", "0004_auto_20231214_0916"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='blog',
-            name='rate',
+            model_name="blog",
+            name="rate",
             field=models.FloatField(),
         ),
         migrations.AlterField(
-            model_name='vote',
-            name='vote',
-            field=models.IntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(5)]),
+            model_name="vote",
+            name="vote",
+            field=models.IntegerField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(5),
+                ],
+            ),
         ),
     ]

@@ -5,10 +5,14 @@ User = get_user_model()
 
 
 class Comment(models.Model):
-    post = models.ForeignKey("blog.Blog", on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(
+        "blog.Blog", on_delete=models.CASCADE, related_name="comments"
+    )
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    reply = models.ForeignKey("Comment", on_delete=models.DO_NOTHING, null=True, blank=True)
+    reply = models.ForeignKey(
+        "Comment", on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

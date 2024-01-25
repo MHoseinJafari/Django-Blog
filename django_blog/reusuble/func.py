@@ -8,10 +8,6 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-
-
-
-
 # TODO:send email function for multiple views
 def send_email(email, email_format):
     user_obj = get_object_or_404(User, email=email)

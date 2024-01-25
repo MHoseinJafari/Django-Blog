@@ -8,13 +8,15 @@ generate verified permissions for the project
 
 
 class IsVerified(permissions.BasePermission):
-    message = 'user is not verified.'
+    message = "user is not verified."
+
     def has_permission(self, request, view):
         return request.user and request.user.is_verified
 
 
 class IsVerifiedOrReadOnly(permissions.BasePermission):
-    message = 'user is not verified.'
+    message = "user is not verified."
+
     def has_permission(self, request, view):
         return bool(
             request.method in permissions.SAFE_METHODS
@@ -23,7 +25,10 @@ class IsVerifiedOrReadOnly(permissions.BasePermission):
             and request.user.is_verified
         )
 
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
+    message = "you ate not owner of this post."
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
