@@ -10,9 +10,6 @@ services:
       - ./django_blog:/app
     ports:
       - "8000:8000"
-    environment:
-      - ${SECRET_KEY}
-      - DEBUG=True
   smtp4dev:
     image: rnwood/smtp4dev:v3
     restart: always
