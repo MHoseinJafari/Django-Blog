@@ -12,7 +12,8 @@ exclude =
     __init__,
     migrations,
     accounts/views.py,
-    TodoApp/api/utils.py,
+    blog/management/commands/insert_data.py,
+    
 
 ignore = 
     E712,
