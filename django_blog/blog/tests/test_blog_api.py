@@ -283,15 +283,15 @@ class TestBlogApi:
         blog = Blog.objects.first()
         assert blog.rate != 3
 
-    def test_post_vote_out_of_range_blog_response_400_status(
+    def test_post_vote_out_of_range_blog_response_406_status(
         self, api_client, common_user, blog_obj
     ):
-        with pytest.raises(ValueError):
-            url = reverse("blog:vote", args=[blog_obj.id])
-            user = common_user
-            api_client.force_login(user=user)
-            data = {"vote": 7}
-            api_client.post(url, data, format="json")
+        url = reverse("blog:vote", args=[blog_obj.id])
+        user = common_user
+        api_client.force_login(user=user)
+        data = {"vote": 7}
+        response = api_client.post(url, data, format="json")
+        assert response.status_code == 406
 
     def test_post_comment_blog_response_201_status(
         self, api_client, common_user, blog_obj

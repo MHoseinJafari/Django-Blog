@@ -10,6 +10,10 @@ from django.contrib.auth.models import (
 )
 from django.utils.translation import gettext_lazy as _
 
+import jwt
+from django.conf import settings
+from rest_framework.exceptions import ParseError
+
 
 # crate custom user and superuser
 class UserManager(BaseUserManager):
@@ -68,12 +72,36 @@ class User(AbstractBaseUser, PermissionsMixin):
     @staticmethod
     def check_pass(password, object):
         if not object.check_password(password):
-            return False
+            raise ParseError("wrong current password")
 
     @staticmethod
     def set_pass(password, object):
         object.set_password(password)
         object.save()
+
+    @staticmethod
+    def check_jwt(token):
+        try:
+            token = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            user_id = token.get("user_id")
+        except Exception:
+            raise ParseError("token is not valid")
+        user_obj = User.objects.get(pk=user_id)
+        return user_obj
+
+    @staticmethod
+    def user_activation(token):
+        user_obj = User.check_jwt(token)
+        User.check_verify(user_obj)
+        user_obj.is_verified = True
+        user_obj.save()
+
+    @staticmethod
+    def check_verify(user_obj):
+        if user_obj.is_verified:
+            raise ValueError("your accout has already been verified")
 
 
 class Profile(models.Model):

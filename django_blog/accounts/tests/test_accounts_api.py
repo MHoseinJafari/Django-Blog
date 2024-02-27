@@ -144,9 +144,7 @@ class TestAccountsApi:
         assert response.status_code == 401
         assert User.objects.count() == 0
 
-    def test_create_jwt_token_not_active_response_401_status(
-        self, api_client
-    ):
+    def test_create_jwt_token_not_active_response_401_status(self, api_client):
         url = reverse("accounts:jwt-create")
         User.objects.create_user(
             email="mo@gmail.com",
@@ -444,9 +442,7 @@ class TestAccountsApi:
         response = api_client.post(url, data, format="json")
         assert response.status_code == 200
 
-    def test_post_reset_password__email_no_user_response_400(
-        self, api_client
-    ):
+    def test_post_reset_password__email_no_user_response_400(self, api_client):
         url = reverse("accounts:reset-password")
         data = {
             "email": "mo@gmail.com",

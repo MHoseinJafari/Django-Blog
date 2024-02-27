@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
+from rest_framework.exceptions import NotAcceptable
+
 
 User = get_user_model()
 
@@ -38,7 +40,7 @@ class Blog(models.Model):
             vote_obj.post.save()
             return vote_obj.post.rate
         else:
-            raise ValueError("invalid amount")
+            raise NotAcceptable({"detail": "invalid vote"})
 
     def avrage_vote(self):
         post_obj = Blog.objects.filter(id=self.id).annotate(

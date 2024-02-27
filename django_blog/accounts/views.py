@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.db import transaction
+from rest_framework.exceptions import ParseError
+
 
 import jwt
 
@@ -31,11 +33,9 @@ class RegistrationApiView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
 
     @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        email = self.request.data.get("email", None)
+    def perform_create(self, serializer):
+        instanse = serializer.save()
+        email = instanse.email
         send_email(email, email_format="activation")
         user = User.objects.get(email=email)
         Profile.objects.create(user=user)
@@ -71,7 +71,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 # TODO:user can change password in account
-class ChangePasswordApiView(generics.GenericAPIView):
+class ChangePasswordApiView(generics.UpdateAPIView):
     model = User
     permission_classes = [IsAuthenticated, IsVerified]
     serializer_class = ChangePasswordSerializer
@@ -80,26 +80,15 @@ class ChangePasswordApiView(generics.GenericAPIView):
         obj = self.request.user
         return obj
 
-    def put(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            old_pass = serializer.data.get("old_password")
-            new_pass = serializer.data.get("new_password")
-            # check old password
-            check = User.check_pass(old_pass, self.object)
-            if check is False:
-                return Response(
-                    {"old_password": ["wrong password"]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # set new password to user
-            User.set_pass(new_pass, self.object)
-            return Response(
-                {"detail": "password changes successfully"},
-                status=status.HTTP_200_OK,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def update(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            {"detail": "password changes successfully"},
+            status=status.HTTP_200_OK,
+        )
 
 
 # TODO:show profile in account and user can change profile information
@@ -128,23 +117,9 @@ class VerficationEmailApiView(generics.GenericAPIView):
 class ActivationApiView(APIView):
     def get(self, request, token, *args, **kwargs):
         try:
-            token = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=["HS256"]
-            )
-            user_id = token.get("user_id")
-        except Exception:
-            return Response(
-                {"details": "token is not valid"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        user_obj = User.objects.get(pk=user_id)
-        if user_obj.is_verified:
-            return Response(
-                {"details": "your accout has already been verified"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        user_obj.is_verified = True
-        user_obj.save()
+            User.user_activation(token)
+        except ValueError as e:
+            raise ParseError({"details": str(e)})
         return Response(
             {"details": "your account has been verified successfully"},
             status=status.HTTP_200_OK,
@@ -152,63 +127,40 @@ class ActivationApiView(APIView):
 
 
 # TODO:resend activation email for verify users
-class ActivationResendApiView(generics.GenericAPIView):
+class ActivationResendApiView(generics.CreateAPIView):
     serializer_class = ActivationEmailSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def perform_create(self, serializer):
         user_obj = serializer.validated_data["user"]
-        if user_obj.is_verified:
-            return Response(
-                {"details": "user is already activated and verified"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        try:
+            User.check_verify(user_obj)
+        except ValueError as e:
+            raise ParseError({"detail": str(e)})
         send_email(user_obj.email, email_format="activation")
-        return Response(
-            {"details": "user activation resend successfully"},
-            status=status.HTTP_200_OK,
-        )
+        # return Response(
+        #     {"details": "user activation resend successfully"},
+        #     status=status.HTTP_200_OK,
+        #     )
 
 
 # TODO:send email for reset password when user is verified and can not login
-class ResetPasswordEmailApiView(generics.GenericAPIView):
+class ResetPasswordEmailApiView(generics.CreateAPIView):
     serializer_class = ActivationEmailSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def perform_create(self, serializer):
         user_obj = serializer.validated_data["user"]
-        if user_obj.is_verified:
-            send_email(user_obj.email, email_format="reset_password")
-            return Response(
-                {"details": "reset password link send successfully"},
-                status=status.HTTP_200_OK,
-            )
-        else:
-            return Response(
-                {"details": "user is not verified"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        if not user_obj.is_verified:
+            raise ParseError({"details": "user is not verified"})
+        send_email(user_obj.email, email_format="reset_password")
 
 
 # TODO:with this class the user is allowed to change password
-class ResetPasswordConfirmation(generics.GenericAPIView):
+class ResetPasswordConfirmation(generics.CreateAPIView):
     model = User
     serializer_class = ResetPasswordSerializer
 
-    def post(self, request, token, *args, **kwargs):
-        try:
-            token = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=["HS256"]
-            )
-            user_id = token.get("user_id")
-        except Exception:
-            return Response(
-                {"details": "token is not valid"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        user_obj = User.objects.get(pk=user_id)
+    def create(self, request, token):
+        user_obj = User.check_jwt(token)
         serializer = ResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user_obj.set_password(serializer.data.get("new_password"))

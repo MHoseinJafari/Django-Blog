@@ -14,8 +14,6 @@ urlpatterns = [
         CommentModelViewSet.as_view({"post": "create", "get": "list"}),
         name="comments",
     ),
-    path(
-        "blog/<int:pk>/vote", views.VoteCreateApiView.as_view(), name="vote"
-    ),
+    path("blog/<int:pk>/vote", views.VoteCreateApiView.as_view(), name="vote"),
 ]
 urlpatterns += router.urls
