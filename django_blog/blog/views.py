@@ -38,7 +38,7 @@ class VoteCreateApiView(generics.CreateAPIView):
     def perform_create(self, serializer):
         vote_obj = serializer.validated_data["vote"]
         vote_obj = int(vote_obj)
-        blog = Blog.objects.get(pk=self.kwargs.get("pk"))
+        blog = serializer.validated_data["post"]
         blog.vote_submit(user=self.request.user, amount=vote_obj)
 
     def get_queryset(self):

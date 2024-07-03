@@ -70,17 +70,17 @@ class User(AbstractBaseUser, PermissionsMixin):
             )
 
     @staticmethod
-    def check_pass(password, object):
+    def check_pass(password: str, object) -> str:
         if not object.check_password(password):
             raise ParseError("wrong current password")
 
     @staticmethod
-    def set_pass(password, object):
+    def set_pass(password: str, object):
         object.set_password(password)
         object.save()
 
     @staticmethod
-    def check_jwt(token):
+    def check_jwt(token: str) -> "User":
         try:
             token = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=["HS256"]
@@ -92,14 +92,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         return user_obj
 
     @staticmethod
-    def user_activation(token):
+    def user_activation(token: str) -> bool:
         user_obj = User.check_jwt(token)
         User.check_verify(user_obj)
         user_obj.is_verified = True
         user_obj.save()
 
     @staticmethod
-    def check_verify(user_obj):
+    def check_verify(user_obj) -> None:
         if user_obj.is_verified:
             raise ValueError("your accout has already been verified")
 

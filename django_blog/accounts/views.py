@@ -137,10 +137,6 @@ class ActivationResendApiView(generics.CreateAPIView):
         except ValueError as e:
             raise ParseError({"detail": str(e)})
         send_email(user_obj.email, email_format="activation")
-        # return Response(
-        #     {"details": "user activation resend successfully"},
-        #     status=status.HTTP_200_OK,
-        #     )
 
 
 # TODO:send email for reset password when user is verified and can not login

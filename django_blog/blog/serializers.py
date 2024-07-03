@@ -7,7 +7,7 @@ from accounts.models import User
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ["content", "author", "reply", "date"]
+        fields = ["id", "content", "post", "author", "reply", "date"]
         read_only_fields = ["author"]
 
     def create(self, validated_data):
@@ -20,7 +20,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
-        fields = ["vote"]
+        fields = ["vote", "post"]
 
 
 class BlogCreateSerializer(serializers.ModelSerializer):
@@ -46,6 +46,7 @@ class BlogSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "content",
+            "count_of_voters",
             "author",
             "category",
             "rate",

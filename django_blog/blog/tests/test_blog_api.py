@@ -158,22 +158,6 @@ class TestBlogApi:
         assert blog.title != "test edited by put"
         assert blog.content != "test content with put"
 
-    def test_put_blog_bad_request_response_400_status(
-        self, api_client, common_user, blog_obj
-    ):
-        url = reverse("blog:blog-detail", args=[blog_obj.id])
-        data = {
-            "title": "test edited by put",
-        }
-        user = common_user
-        api_client.force_login(user=user)
-        response = api_client.put(url, data, format="json")
-        blog = Blog.objects.all()[0]
-        assert response.status_code == 400
-        assert Blog.objects.count() == 1
-        assert blog.title != "test edited by put"
-        assert blog.content != "test content with put"
-
     def test_put_blog_not_owner_response_403_status(
         self, api_client, another_user, blog_obj
     ):
@@ -245,10 +229,13 @@ class TestBlogApi:
     def test_post_vote_blog_response_201_status(
         self, api_client, common_user, blog_obj
     ):
-        url = reverse("blog:vote", args=[blog_obj.id])
+        url = reverse("blog:vote")
         user = common_user
         api_client.force_login(user=user)
-        data = {"vote": 3}
+        data = {
+            "vote": 3,
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 201
         assert Blog.objects.count() == 1
@@ -260,8 +247,11 @@ class TestBlogApi:
     def test_post_vote_blog_unauthorized_response_401_status(
         self, api_client, blog_obj
     ):
-        url = reverse("blog:vote", args=[blog_obj.id])
-        data = {"vote": 3}
+        url = reverse("blog:vote")
+        data = {
+            "vote": 3,
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 401
         assert Blog.objects.count() == 1
@@ -271,12 +261,15 @@ class TestBlogApi:
     def test_post_vote_blog_not_verified_response_403_status(
         self, common_user, api_client, blog_obj
     ):
-        url = reverse("blog:vote", args=[blog_obj.id])
+        url = reverse("blog:vote")
         user = common_user
         user.is_verified = False
         user.save()
         api_client.force_login(user=user)
-        data = {"vote": 3}
+        data = {
+            "vote": 3,
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 403
         assert Blog.objects.count() == 1
@@ -286,20 +279,26 @@ class TestBlogApi:
     def test_post_vote_out_of_range_blog_response_406_status(
         self, api_client, common_user, blog_obj
     ):
-        url = reverse("blog:vote", args=[blog_obj.id])
+        url = reverse("blog:vote")
         user = common_user
         api_client.force_login(user=user)
-        data = {"vote": 7}
+        data = {
+            "vote": 7,
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 406
 
     def test_post_comment_blog_response_201_status(
         self, api_client, common_user, blog_obj
     ):
-        url = reverse("blog:comments", args=[blog_obj.id])
+        url = reverse("comments")
         user = common_user
         api_client.force_login(user=user)
-        data = {"content": "this is a comment"}
+        data = {
+            "content": "this is a comment",
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 201
         blog = Blog.objects.first()
@@ -310,8 +309,11 @@ class TestBlogApi:
     def test_post_comment_blog_unauthorized_response_401_status(
         self, api_client, blog_obj
     ):
-        url = reverse("blog:comments", args=[blog_obj.id])
-        data = {"content": "this is a comment"}
+        url = reverse("comments")
+        data = {
+            "content": "this is a comment",
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 401
         assert Blog.objects.count() == 1
@@ -321,12 +323,15 @@ class TestBlogApi:
     def test_post_comment_blog_not_verified_response_403_status(
         self, common_user, api_client, blog_obj
     ):
-        url = reverse("blog:comments", args=[blog_obj.id])
+        url = reverse("comments")
         user = common_user
         user.is_verified = False
         user.save()
         api_client.force_login(user=user)
-        data = {"content": "this is a comment"}
+        data = {
+            "content": "this is a comment",
+            "post": 1,
+        }
         response = api_client.post(url, data, format="json")
         assert response.status_code == 403
         assert Blog.objects.count() == 1

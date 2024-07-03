@@ -144,7 +144,9 @@ class TestAccountsApi:
         assert response.status_code == 401
         assert User.objects.count() == 0
 
-    def test_create_jwt_token_not_active_response_401_status(self, api_client):
+    def test_create_jwt_token_not_active_response_401_status(
+        self, api_client
+    ):
         url = reverse("accounts:jwt-create")
         User.objects.create_user(
             email="mo@gmail.com",
@@ -402,7 +404,7 @@ class TestAccountsApi:
         response = api_client.get(url)
         assert response.status_code == 400
 
-    def test_post_resend_activation_valid_data_response_200(
+    def test_post_resend_activation_valid_data_response_201(
         self, api_client, normal_user
     ):
         url = reverse("accounts:resend-activation")
@@ -412,7 +414,7 @@ class TestAccountsApi:
             "email": "mo@gmail.com",
         }
         response = api_client.post(url, data, format="json")
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     def test_post_resend_activation_verify_user_response_400(
         self, api_client, normal_user
@@ -432,7 +434,7 @@ class TestAccountsApi:
         response = api_client.post(url, data, format="json")
         assert response.status_code == 400
 
-    def test_post_reset_password_email_valid_data_response_200(
+    def test_post_reset_password_email_valid_data_response_201(
         self, api_client, normal_user
     ):
         url = reverse("accounts:reset-password")
@@ -440,9 +442,11 @@ class TestAccountsApi:
             "email": "mo@gmail.com",
         }
         response = api_client.post(url, data, format="json")
-        assert response.status_code == 200
+        assert response.status_code == 201
 
-    def test_post_reset_password__email_no_user_response_400(self, api_client):
+    def test_post_reset_password__email_no_user_response_400(
+        self, api_client
+    ):
         url = reverse("accounts:reset-password")
         data = {
             "email": "mo@gmail.com",

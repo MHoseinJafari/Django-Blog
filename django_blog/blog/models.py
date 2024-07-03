@@ -1,16 +1,18 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
+from django.db.models import F
 from rest_framework.exceptions import NotAcceptable
+from django.db import transaction
 
 
 User = get_user_model()
 
 
 class Blog(models.Model):
-    title = models.CharField(max_length=30)
-    content = models.TextField()
+    title = models.CharField(max_length=30, default="Blog post title")
+    content = models.TextField(default="Blog post content")
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    count_of_voters = models.IntegerField(default=0)
     category = models.ForeignKey(
         "Category",
         on_delete=models.SET_NULL,
@@ -23,31 +25,38 @@ class Blog(models.Model):
     def __str__(self):
         return self.title
 
-    def initiate(self, user):
-        vote = Vote.objects.filter(user=user, post=self)
-        if vote.exists():
-            return Vote.objects.get(user=user, post=self)
-        else:
-            return Vote.objects.create(user=user, post=self)
+    def initiate(self, user) -> "Vote":
+        with transaction.atomic():
+            vote = Vote.objects.filter(user=user, post=self)
+            if vote.exists():
+                return Vote.objects.select_for_update().get(
+                    user=user, post=self
+                )
+            else:
+                self.count_of_voters += 1
+                return Vote.objects.select_for_update().create(
+                    user=user, post=self
+                )
 
-    def vote_submit(self, user, amount):
+    def vote_submit(self, user, amount: int) -> None:
         if amount in range(6):
+            current_count_of_voters = self.count_of_voters
             vote_obj = self.initiate(user)
+            current_amount = vote_obj.vote
             vote_obj.vote = amount
             vote_obj.save()
-            post_rate = self.avrage_vote()
-            vote_obj.post.rate = post_rate
-            vote_obj.post.save()
-            return vote_obj.post.rate
+            if self.count_of_voters > current_count_of_voters:
+                self.rate = (
+                    (F("rate") * current_count_of_voters) + vote_obj.vote
+                ) / self.count_of_voters
+            else:
+                self.rate = (
+                    ((F("rate") * current_count_of_voters) - current_amount)
+                    + amount
+                ) / current_count_of_voters
+            self.save()
         else:
             raise NotAcceptable({"detail": "invalid vote"})
-
-    def avrage_vote(self):
-        post_obj = Blog.objects.filter(id=self.id).annotate(
-            avg_vote=Avg("vote__vote")
-        )
-        post_rate = post_obj[0].avg_vote
-        return post_rate
 
 
 class Category(models.Model):
